@@ -436,8 +436,8 @@ extern "C" {
 
         // incoming addition (must be appended)
         GGML_TYPE_PLANAR3_0 = 45, // PlanarQuant 3-bit KV cache: 2D Givens rotation + 2-bit scalar + 1-bit QJL
-
-        GGML_TYPE_COUNT = 46,
+        GGML_TYPE_ISO3_0 = 46, // IsoQuant 3-bit KV cache: quaternion 4D rotation + 2-bit scalar + 1-bit QJL // PlanarQuant 3-bit KV cache: 2D Givens rotation + 2-bit scalar + 1-bit QJL
+        GGML_TYPE_COUNT   = 47,
     };
 
     // precision
