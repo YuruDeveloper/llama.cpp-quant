@@ -3,21 +3,21 @@
 // static __constant__ so each CUDA compilation unit gets its own initialized copy.
 // No runtime init needed — constants are baked in at compile time.
 
-// 3-bit centroids (same as turbo3)
+// 3-bit centroids — Lloyd-Max N(0, 1/128), from rotorquant Python
 static __constant__ float PI_CENTROIDS_3BIT[8] = {
-    -0.190685f, -0.117832f, -0.065717f, -0.021460f,
-     0.021460f,  0.065717f,  0.117832f,  0.190685f
+    -0.1902069300f, -0.1187859178f, -0.0668220595f, -0.0216634702f,
+     0.0216634702f,  0.0668220595f,  0.1187859178f,  0.1902069300f
 };
-// 3-bit midpoints for fast quantization
+// 3-bit midpoints for fast quantization (midpoints between consecutive centroids)
 static __constant__ float PI_MID_3BIT[7] = {
-    -0.154259f, -0.091775f, -0.043589f, 0.0f, 0.043589f, 0.091775f, 0.154259f
+    -0.1544964239f, -0.0928039887f, -0.0442427649f, 0.0f, 0.0442427649f, 0.0928039887f, 0.1544964239f
 };
-// 4-bit centroids (same as turbo4)
+// 4-bit centroids — Lloyd-Max N(0, 1/128), from rotorquant Python
 static __constant__ float PI_CENTROIDS_4BIT[16] = {
-    -0.173926f, -0.117195f, -0.089527f, -0.068756f,
-    -0.051262f, -0.035597f, -0.020989f, -0.006938f,
-     0.006938f,  0.020989f,  0.035597f,  0.051262f,
-     0.068756f,  0.089527f,  0.117195f,  0.173926f
+    -0.2415722609f, -0.1829257905f, -0.1430662125f, -0.1110830978f,
+    -0.0833324865f, -0.0580811463f, -0.0343186855f, -0.0113553675f,
+     0.0113553675f,  0.0343186855f,  0.0580811463f,  0.0833324865f,
+     0.1110830978f,  0.1430662125f,  0.1829257905f,  0.2415722609f
 };
 
 // Givens rotation: cos/sin for 64 pairs (seed=42, LCG PRNG)

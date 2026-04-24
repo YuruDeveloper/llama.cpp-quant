@@ -20,10 +20,10 @@
 #define PLANAR_D 128
 #define PLANAR_SEED 42
 
-/* Same centroids as turbo3 (Lloyd-Max for N(0, 1/128)) */
+/* Lloyd-Max centroids for N(0, 1/128), 3-bit (8 levels) — from rotorquant Python */
 static const float PLANAR_CENTROIDS_3BIT[8] = {
-    -0.1906850000f, -0.1178320000f, -0.0657170000f, -0.0214600000f,
-    0.0214600000f, 0.0657170000f, 0.1178320000f, 0.1906850000f,
+    -0.1902069300f, -0.1187859178f, -0.0668220595f, -0.0216634702f,
+     0.0216634702f,  0.0668220595f,  0.1187859178f,  0.1902069300f,
 };
 
 /* Rotation parameters: cos/sin per pair (lazy init) */

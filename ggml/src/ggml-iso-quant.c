@@ -21,9 +21,10 @@
 #define ISO_SEED 42
 #define ISO_N_GROUPS 32  /* 128 / 4 */
 
+/* Lloyd-Max centroids for N(0, 1/128), 3-bit (8 levels) — from rotorquant Python */
 static const float ISO_CENTROIDS_3BIT[8] = {
-    -0.1906850000f, -0.1178320000f, -0.0657170000f, -0.0214600000f,
-    0.0214600000f, 0.0657170000f, 0.1178320000f, 0.1906850000f,
+    -0.1902069300f, -0.1187859178f, -0.0668220595f, -0.0216634702f,
+     0.0216634702f,  0.0668220595f,  0.1187859178f,  0.1902069300f,
 };
 
 /* Unit quaternions (one per 4D group, lazy init) */
