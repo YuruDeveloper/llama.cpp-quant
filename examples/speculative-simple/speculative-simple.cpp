@@ -111,11 +111,14 @@ int main(int argc, char ** argv) {
         if (params.speculative.eagle3) {
             llama_set_eagle3(ctx_tgt, model_dft.get());
         }
+        if (params.speculative.dflash) {
+            llama_set_dflash(ctx_tgt, model_dft.get());
+        }
     }
 
-    // Apply chat template for EAGLE3 if available which can increase the acceptance rate
+    // Apply chat template for EAGLE3 / DFlash if available which can increase the acceptance rate
     std::string prompt = params.prompt;
-    if (params.speculative.eagle3) {
+    if (params.speculative.eagle3 || params.speculative.dflash) {
         auto chat_templates = common_chat_templates_init(model_tgt, params.chat_template);
         if (common_chat_templates_was_explicit(chat_templates.get())) {
             std::vector<common_chat_msg> chat_msgs;
@@ -129,6 +132,15 @@ int main(int argc, char ** argv) {
             inputs.add_generation_prompt = true;
             prompt = common_chat_templates_apply(chat_templates.get(), inputs).prompt;
             LOG_INF("%s: EAGLE3 chat template applied\n", __func__);
+            // Disable thinking mode can improve accept rate
+            if (const char * nt = std::getenv("LLAMA_SPEC_NO_THINK"); nt && std::string(nt) != "0") {
+                // Qwen3 / 3.5
+                inputs.enable_thinking = false;
+                // gpt-oss
+                inputs.chat_template_kwargs["reasoning_effort"] = "\"low\"";
+            }
+            prompt = common_chat_templates_apply(chat_templates.get(), inputs).prompt;
+            LOG_INF("%s: %s chat template applied\n", __func__, params.speculative.eagle3 ? "EAGLE3" : "DFlash");
         }
     }
 
@@ -177,7 +189,7 @@ int main(int argc, char ** argv) {
     int n_past;
 
     // TODO: simplify
-    if (params.speculative.eagle3) {
+    if (params.speculative.eagle3 || params.speculative.dflash) {
         // Target model decodes full prompt and sample first token and intermediate features are extracted
         llama_decode(ctx_tgt, llama_batch_get_one(inp.data(), inp.size()));
 
