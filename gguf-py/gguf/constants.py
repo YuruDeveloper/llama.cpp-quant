@@ -492,7 +492,6 @@ class MODEL_ARCH(IntEnum):
     RND1             = auto()
     PANGU_EMBED      = auto()
     MISTRAL3         = auto()
-    EAGLE3           = auto()
     MISTRAL4         = auto()
     EAGLE3           = auto()
     DFLASH           = auto()
@@ -3782,6 +3781,8 @@ MODEL_TENSORS: dict[MODEL_ARCH, list[MODEL_TENSOR]] = {
         MODEL_TENSOR.EAGLE3_D2T,
     ],
     MODEL_ARCH.DFLASH: [
+        MODEL_TENSOR.TOKEN_EMBD,       # 추가 필요!
+        MODEL_TENSOR.OUTPUT,           # 추가 필요!
         MODEL_TENSOR.OUTPUT_NORM,
         MODEL_TENSOR.ATTN_NORM,
         MODEL_TENSOR.ATTN_Q,
