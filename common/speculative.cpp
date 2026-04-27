@@ -1310,6 +1310,7 @@ common_speculative * common_speculative_init(
                 break;
             }
             case COMMON_SPECULATIVE_TYPE_DFLASH: {
+                llama_set_dflash(ctx_tgt, params.model_dft);
                 impls.push_back(std::make_unique<common_speculative_state_dflash>(config.type,
                     /* .ctx_tgt      = */ ctx_tgt,
                     /* .ctx_dft_enc  = */ ctx_dft_enc,
