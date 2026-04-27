@@ -6329,6 +6329,8 @@ struct ggml_tensor * ggml_turbo_wht(
     // Store direction and group_size in op_params
     memcpy(result->op_params + 0, &direction, sizeof(int));
     memcpy(result->op_params + sizeof(int), &group_size, sizeof(int));
+    return result; 
+}
 // dflash: tree-mode variant. Same op, with parent_ids plumbed into
 // src[6] so the CUDA kernel can branch-reload state at DFS transitions.
 struct ggml_tensor * ggml_gated_delta_net_tree(
