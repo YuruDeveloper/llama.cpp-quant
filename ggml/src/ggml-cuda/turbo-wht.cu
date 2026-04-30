@@ -47,7 +47,7 @@ static __global__ void k_turbo_wht_f32(const float * __restrict__ src,
 
     // InnerQ forward: apply scale_inv BEFORE signs+WHT (for Q pre-rotation)
     if (direction == 0 && scale_inv != nullptr) {
-        x[t] *= scale_inv[t % group_size];
+        x[t] *= scale_inv[t];  // t is already 0..group_size-1
         __syncthreads();
     }
 
@@ -59,22 +59,33 @@ static __global__ void k_turbo_wht_f32(const float * __restrict__ src,
     }
     __syncthreads();
 
-    // WHT butterfly — log2(group_size) stages.
-    // In stage h, threads where (t % (2h)) < h read x[t] and x[t+h],
-    // then write x[t] = a+b and x[t+h] = a-b.  Each active thread
-    // owns a disjoint pair, so no intra-stage conflicts exist.
-#define WHT_STAGE(h) \
-    if (t % (2*(h)) < (h)) { float a = x[t], b = x[t+(h)]; x[t] = a+b; x[t+(h)] = a-b; } \
+    // ── Warp-internal butterfly (h=1,2,4,8,16): register only ──
+    float val = x[t];
+    { float n = __shfl_xor_sync(0xFFFFFFFF, val, 1);
+      val = (t & 1)  ? (n - val) : (val + n); }
+    { float n = __shfl_xor_sync(0xFFFFFFFF, val, 2);
+      val = (t & 2)  ? (n - val) : (val + n); }
+    { float n = __shfl_xor_sync(0xFFFFFFFF, val, 4);
+      val = (t & 4)  ? (n - val) : (val + n); }
+    { float n = __shfl_xor_sync(0xFFFFFFFF, val, 8);
+      val = (t & 8)  ? (n - val) : (val + n); }
+    { float n = __shfl_xor_sync(0xFFFFFFFF, val, 16);
+      val = (t & 16) ? (n - val) : (val + n); }
+
+    // ── Write warp result to shared memory for cross-warp stages ──
+    x[t] = val;
     __syncthreads();
 
-    WHT_STAGE(1)
-    WHT_STAGE(2)
-    WHT_STAGE(4)
-    WHT_STAGE(8)
-    WHT_STAGE(16)
-    WHT_STAGE(32)
-    if (group_size == 128) { WHT_STAGE(64) }
-#undef WHT_STAGE
+    // ── Cross-warp butterfly (h=32): shared memory, all groups ──
+    if ((t & 63) < 32) { float a = x[t], b = x[t+32]; x[t] = a+b; x[t+32] = a-b; }
+    __syncthreads();
+
+    // ── Cross-warp butterfly (h=64): shared memory, group_size=128 only ──
+    // MUST be synced from h=32: thread 0 reads x[64] written by thread 32.
+    if (group_size == 128) {
+        if ((t & 127) < 64) { float a = x[t], b = x[t+64]; x[t] = a+b; x[t+64] = a-b; }
+        __syncthreads();
+    }
 
     // Normalize and apply second sign array, write to output
     constexpr float inv_sqrt = (group_size == 128) ? 0.08838834764831845f : 0.125f;
@@ -89,7 +100,7 @@ static __global__ void k_turbo_wht_f32(const float * __restrict__ src,
 
     // InnerQ inverse: apply scale_inv AFTER WHT+signs (for V un-rotation)
     if (direction == 1 && scale_inv != nullptr) {
-        result *= scale_inv[t % group_size];
+        result *= scale_inv[t];  // t is already 0..group_size-1
     }
 
     dst[base + t] = result;
